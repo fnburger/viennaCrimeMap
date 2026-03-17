@@ -1,0 +1,121 @@
+[
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=45555336597638716242773D&pro=0",
+    "district": "Favoriten",
+    "street": "Reumannplatz",
+    "lat": 48.1749578,
+    "lng": 16.3779017
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=644D774A5972636A6837593D&pro=0",
+    "district": "Floridsdorf",
+    "street": null,
+    "lat": 48.2798151,
+    "lng": 16.4121346
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=693272636C4F69453170453D&pro=0",
+    "district": "Döbling",
+    "street": "Heiligenstädter Straße",
+    "lat": 48.2591747,
+    "lng": 16.3673076
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=4F2B36506A4D41345957733D&pro=0",
+    "district": "Landstraße",
+    "street": "Am Stadtpark",
+    "lat": 48.2057834,
+    "lng": 16.3823916
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=5779337172682F64624B773D&pro=0",
+    "district": "Margareten",
+    "street": null,
+    "lat": 48.1900247,
+    "lng": 16.3570057
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=414D3966752B7969766B6F3D&pro=0",
+    "district": "Rudolfsheim",
+    "street": null,
+    "lat": 48.1906239,
+    "lng": 16.3240128
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=442F7256735766536336493D&pro=1",
+    "district": "Favoriten",
+    "street": null,
+    "lat": 48.1529937,
+    "lng": 16.3828218
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=4F41732B4778464132426F3D&pro=1",
+    "district": "Liesing",
+    "street": null,
+    "lat": 48.1411061,
+    "lng": 16.2939161
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=61384B364F6C374E4158733D&pro=1",
+    "district": "Floridsdorf",
+    "street": null,
+    "lat": 48.2798151,
+    "lng": 16.4121346
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=446F585044424C594351513D&pro=1",
+    "district": "Floridsdorf",
+    "street": null,
+    "lat": 48.2798151,
+    "lng": 16.4121346
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=684E4C4F4E6172316D6E413D&pro=1",
+    "district": "Favoriten",
+    "street": "Reumannplatz",
+    "lat": 48.1749578,
+    "lng": 16.3779017
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=766E6237445A496A386A673D&pro=2",
+    "district": "Donaustadt",
+    "street": "Erzherzog-Karl-Straße",
+    "lat": 48.2266479,
+    "lng": 16.4622717
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=456C6C3773366C6C356D673D&pro=2",
+    "district": "Ottakring",
+    "street": null,
+    "lat": 48.2149546,
+    "lng": 16.3021535
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=6C553446693859634B32383D&pro=2",
+    "district": "Floridsdorf",
+    "street": "Franz-Jonas-Platz",
+    "lat": 48.2559163,
+    "lng": 16.3997238
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=725756724A56332F7A4E493D&pro=2",
+    "district": "Neubau",
+    "street": null,
+    "lat": 48.2018808,
+    "lng": 16.3490557
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=755A3466417368313476513D&pro=2",
+    "district": "Hietzing",
+    "street": null,
+    "lat": 48.178541,
+    "lng": 16.2529858
+  },
+  {
+    "url": "https://www.polizei.gv.at/wien/presse/aussendungen/presse.aspx?prid=6B71624C5873756C7666773D&pro=2",
+    "district": "Ottakring",
+    "street": null,
+    "lat": 48.2149546,
+    "lng": 16.3021535
+  }
+]

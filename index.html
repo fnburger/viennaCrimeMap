@@ -405,6 +405,85 @@
             .map-corner-label { font-size: 9px; padding: 6px 10px; }
             .toggle-btn { font-size: 9px; padding: 5px 8px; }
         }
+
+        /* ── Recent Crimes Overlay Toggle ── */
+        .overlay-toggle {
+            background: rgba(21, 24, 32, 0.88);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .overlay-toggle:hover { background: var(--surface2); }
+
+        .overlay-toggle input {
+            appearance: none;
+            width: 14px; height: 14px;
+            border: 1px solid var(--muted);
+            border-radius: 3px;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .overlay-toggle input:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .overlay-toggle input:checked::after {
+            content: '✔';
+            position: absolute;
+            color: white;
+            font-size: 10px;
+            top: -1px; left: 2px;
+        }
+
+        .overlay-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        /* ── Recent Marker Popup ── */
+        .recent-popup-inner { padding: 12px; min-width: 180px; }
+        .recent-tag {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .recent-tag::before {
+            content: '';
+            display: inline-block;
+            width: 6px; height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        .recent-title { font-size: 14px; color: var(--text); font-weight: 500; margin-bottom: 6px; line-height: 1.3; }
+        .recent-link { font-family: var(--mono); font-size: 10px; color: var(--accent2); text-decoration: none; }
+        .recent-link:hover { text-decoration: underline; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 77, 28, 0.7); }
+            70% { box-shadow: 0 0 0 4px rgba(255, 77, 28, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 77, 28, 0); }
+        }
     </style>
 </head>
 <body>
@@ -465,6 +544,11 @@
                 <button id="btn-abs" class="toggle-btn active" onclick="switchView('absolute')">Absolute</button>
                 <button id="btn-rel" class="toggle-btn" onclick="switchView('relative')">Per 1k</button>
             </div>
+            
+            <label class="overlay-toggle">
+                <input type="checkbox" id="toggle-recent" onchange="toggleRecentCrimes(this.checked)">
+                <span class="overlay-label" id="recent-toggle-text">Recent Reports</span>
+            </label>
         </div>
 
         <div class="source-bar"><span id="source-text"></span></div>
@@ -775,6 +859,50 @@ fetch('vienna_bezirke.geojson')
         }).addTo(map);
     })
     .catch(err => console.error('GeoJSON error:', err));
+
+// --- RECENT CRIMES (SCRAPED DATA) LAYER ---
+let recentCrimesLayer = L.layerGroup();
+
+// Load the scraped data
+fetch('recent_crimes.json')
+    .then(r => r.json())
+    .then(data => {
+        data.forEach(crime => {
+            // Create a custom circle marker for each crime
+            const marker = L.circleMarker([crime.lat, crime.lng], {
+                radius: 6,
+                fillColor: "var(--accent)", // Use your brand orange
+                color: "#151820",           // Dark border to make it pop
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+            });
+            
+            // Format the location name (use street if available, otherwise district)
+            const locationName = crime.street ? `${crime.street}, ${crime.district}` : crime.district;
+
+            // Bind a styled popup
+            marker.bindPopup(`
+                <div class="recent-popup-inner">
+                    <div class="recent-tag" id="recent-tag-text">Latest Report</div>
+                    <div class="recent-title">${locationName}</div>
+                    <a href="${crime.url}" target="_blank" class="recent-link" id="recent-link-text">Read Press Release →</a>
+                </div>
+            `);
+            
+            recentCrimesLayer.addLayer(marker);
+        });
+    })
+    .catch(err => console.log('No recent crimes data found yet. Run the Python scraper first!'));
+
+// Function tied to the checkbox to turn the layer on and off
+function toggleRecentCrimes(show) {
+    if (show) {
+        map.addLayer(recentCrimesLayer);
+    } else {
+        map.removeLayer(recentCrimesLayer);
+    }
+}
 
 changeLanguage('en');
 
