@@ -11,12 +11,16 @@
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
         h1 { text-align: center; color: #333; margin-bottom: 5px; }
         
-        /* Container for the language switcher to align it nicely */
+        /* Container for the language switcher */
         .controls-container { max-width: 1000px; margin: 0 auto 15px auto; text-align: right; }
         select { padding: 6px 10px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer; }
         
         #map { height: 600px; width: 100%; max-width: 1000px; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .legend { line-height: 18px; color: #555; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        
+        #source-text { text-align: center; font-size: 14px; margin-top: 15px; color: #555; }
+        #source-text a { color: #0066cc; text-decoration: none; font-weight: bold; }
+        #source-text a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -32,6 +36,8 @@
     </div>
 
     <div id="map"></div>
+    
+    <div id="source-text"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
@@ -41,37 +47,41 @@
             en: {
                 title: "Vienna Reported Crimes per District (2024)",
                 legend: "Reported Crimes",
-                popup: "Reported Crimes"
+                popup: "Reported Crimes",
+                source: 'Data Source: <a href="https://www.bundeskriminalamt.at/501/files/PKS-24-web3_bf_20250919.pdf" target="_blank">Bundeskriminalamt (PKS 2024)</a>'
             },
             de: {
                 title: "Angezeigte Straftaten nach Bezirk in Wien (2024)",
                 legend: "Angezeigte Straftaten",
-                popup: "Straftaten"
+                popup: "Straftaten",
+                source: 'Datenquelle: <a href="https://www.bundeskriminalamt.at/501/files/PKS-24-web3_bf_20250919.pdf" target="_blank">Bundeskriminalamt (PKS 2024)</a>'
             },
             zh: {
                 title: "维也纳各区报案犯罪数 (2024)",
                 legend: "报案犯罪数",
-                popup: "报案数"
+                popup: "报案数",
+                source: '数据来源: <a href="https://www.bundeskriminalamt.at/501/files/PKS-24-web3_bf_20250919.pdf" target="_blank">奥地利联邦刑事警察局 (PKS 2024)</a>'
             }
         };
 
-        let currentLang = 'en'; // Default language
+        let currentLang = 'en';
 
-        // 2. Function to update text when a new language is selected
+        // 2. Function to update text
         function changeLanguage(lang) {
             currentLang = lang;
-            
-            // Update the main heading
             document.getElementById('page-title').innerText = translations[lang].title;
             
-            // Update the legend title
-            document.getElementById('legend-title').innerText = translations[lang].legend;
+            // Only update the legend title if the legend has been built
+            const legendTitle = document.getElementById('legend-title');
+            if (legendTitle) {
+                legendTitle.innerText = translations[lang].legend;
+            }
             
-            // Close any open popup so it translates automatically the next time it's clicked
+            document.getElementById('source-text').innerHTML = translations[lang].source;
             map.closePopup();
         }
 
-        // Initialize the map
+        // 3. Initialize the map
         const map = L.map('map').setView([48.2082, 16.3738], 11);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -113,15 +123,12 @@
         }
 
         function onEachFeature(feature, layer) {
-            // Bind popup as a dynamic function instead of a static string
             layer.bindPopup(function(layer) {
                 const rawDistrictName = feature.properties.name;
                 const crimes = getCrimeCount(rawDistrictName);
-                
                 const formattedName = rawDistrictName.replace('Wien ', '').replace(',', ', ');
                 const formattedCrimes = crimes.toLocaleString();
                 
-                // Uses the current language dictionary for the popup label
                 return `<b>${formattedName}</b><br>${translations[currentLang].popup}: ${formattedCrimes}`;
             });
             
@@ -167,6 +174,9 @@
             return div;
         };
         legend.addTo(map);
+
+        changeLanguage(currentLang);
+        
     </script>
 </body>
 </html>

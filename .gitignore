@@ -1,0 +1,9 @@
+# Ignore the resources folder
+resources/
+
+# Ignore Mac system files
+.DS_Store
+
+# Ignore Python cache files (for when you build your scraper)
+__pycache__/
+*.pyc
