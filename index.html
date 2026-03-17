@@ -67,19 +67,6 @@
 
         .topbar-lang:focus { outline: none; border-color: var(--accent); }
 
-        .badge {
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 0.1em;
-            color: var(--muted);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 3px 8px;
-            text-transform: uppercase;
-        }
-
-        .badge.live { color: var(--accent2); border-color: rgba(255,181,71,0.3); }
-
         /* ── Main layout ── */
         .layout {
             display: grid;
@@ -247,8 +234,6 @@
             text-align: right;
         }
 
-
-
         /* ── Map ── */
         .map-area {
             position: relative;
@@ -382,6 +367,38 @@
             from { opacity: 0; }
             to   { opacity: 1; }
         }
+
+        /* ── MOBILE RESPONSIVE LAYOUT ── */
+        @media (max-width: 850px) {
+            html, body { 
+                height: auto; 
+                min-height: 100vh; 
+            }
+            .layout {
+                display: flex;
+                flex-direction: column;
+            }
+            /* display: contents flattens the sidebar, allowing us to reorder its children */
+            .sidebar {
+                display: contents; 
+            }
+            .sidebar-header, .stats-section, .legend-section, .ranking-section {
+                background: var(--surface);
+                width: 100%;
+            }
+            /* Sandwich the map between the header and the stats! */
+            .sidebar-header { order: 1; padding: 24px 20px 20px; border-bottom: none; }
+            .map-area       { order: 2; height: 55vh; min-height: 400px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+            .stats-section  { order: 3; padding: 24px 20px; }
+            .legend-section { order: 4; padding: 20px; }
+            .ranking-section{ order: 5; padding: 20px 20px 40px; }
+
+            /* Mobile UI adjustments */
+            .topbar { padding: 0 16px; }
+            h1 { font-size: 40px; }
+            .stats-section { gap: 8px; }
+            .map-corner-label { top: 10px; right: 10px; font-size: 9px; padding: 6px 10px; }
+        }
     </style>
 </head>
 <body>
@@ -431,8 +448,6 @@
             <div class="section-title" id="ranking-title-text">Top 10 districts</div>
             <div class="rank-rows" id="rank-rows"></div>
         </div>
-
-
     </aside>
 
     <div class="map-area">
@@ -622,6 +637,11 @@ fetch('vienna_bezirke.geojson')
 buildLegend();
 buildRanking();
 changeLanguage('en');
+
+// Ensures the map properly sizes itself if the user flips their phone horizontally
+window.addEventListener('resize', () => {
+    map.invalidateSize();
+});
 </script>
 </body>
 </html>
