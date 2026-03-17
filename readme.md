@@ -1,10 +1,10 @@
 # 🇦🇹 Vienna District Crime Map 2024
 An interactive, multilingual Choropleth map visualizing reported crime statistics across Vienna's 23 districts.
 
-[Live Demo Link] (https://fnburger.github.io/viennaCrimeMap/)
+[Live Demo Link](https://fnburger.github.io/viennaCrimeMap/)
 
 ## Features
-* **Interactive Choropleth Map:** Color-coded districts based on crime density using Leaflet.js.
+* **Interactive Choropleth Map:** Color-coded districts based on crime density using Leaflet.js. Switch between absolute values and relative (per 1k citizens).
 * **Multilingual Support:** Dynamic language switching between **English**, **German**, and **Chinese (Simplified)**.
 * **Detailed Tooltips:** Clickable districts showing formatted names and exact case numbers.
 * **Data Accuracy:** Visualizes 2024 official statistics with a high-contrast red-to-yellow safety scale.
