@@ -9,33 +9,76 @@
     
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
-        h1 { text-align: center; color: #333; }
-        /* Set the size of the map */
-        #map { height: 600px; width: 100%; max-width: 1000px; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; margin-bottom: 5px; }
         
-        /* Styling for the map legend */
+        /* Container for the language switcher to align it nicely */
+        .controls-container { max-width: 1000px; margin: 0 auto 15px auto; text-align: right; }
+        select { padding: 6px 10px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer; }
+        
+        #map { height: 600px; width: 100%; max-width: 1000px; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .legend { line-height: 18px; color: #555; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
-        .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }
     </style>
 </head>
 <body>
 
-    <h1>Vienna Reported Crimes per District (2024)</h1>
+    <h1 id="page-title">Vienna Reported Crimes per District (2024)</h1>
+    
+    <div class="controls-container">
+        <select id="langSwitch" onchange="changeLanguage(this.value)">
+            <option value="en">🇬🇧 English</option>
+            <option value="de">🇩🇪 Deutsch</option>
+            <option value="zh">🇨🇳 中文</option>
+        </select>
+    </div>
+
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        // 1. Initialize the map and center it on Vienna
+        // 1. Translation Dictionary
+        const translations = {
+            en: {
+                title: "Vienna Reported Crimes per District (2024)",
+                legend: "Reported Crimes",
+                popup: "Reported Crimes"
+            },
+            de: {
+                title: "Angezeigte Straftaten nach Bezirk in Wien (2024)",
+                legend: "Angezeigte Straftaten",
+                popup: "Straftaten"
+            },
+            zh: {
+                title: "维也纳各区报案犯罪数 (2024)",
+                legend: "报案犯罪数",
+                popup: "报案数"
+            }
+        };
+
+        let currentLang = 'en'; // Default language
+
+        // 2. Function to update text when a new language is selected
+        function changeLanguage(lang) {
+            currentLang = lang;
+            
+            // Update the main heading
+            document.getElementById('page-title').innerText = translations[lang].title;
+            
+            // Update the legend title
+            document.getElementById('legend-title').innerText = translations[lang].legend;
+            
+            // Close any open popup so it translates automatically the next time it's clicked
+            map.closePopup();
+        }
+
+        // Initialize the map
         const map = L.map('map').setView([48.2082, 16.3738], 11);
 
-        // 2. Add the OpenStreetMap base tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // 3. The Crime Data 2024
         const crimeData = {
             "Favoriten": 26218, "Floridsdorf": 15114, "Donaustadt": 14979,
             "Leopoldstadt": 13715, "Innere Stadt": 10284, "Landstraße": 10185,
@@ -47,97 +90,74 @@
             "Währing": 3154, "Josefstadt": 3058
         };
 
-        // Helper function to match GeoJSON district names with our crimeData names
         function getCrimeCount(geoJsonName) {
             for (let district in crimeData) {
-                // Checks if the GeoJSON name contains the district name (e.g. "Wien 10., Favoriten" matches "Favoriten")
-                if (geoJsonName.includes(district)) {
-                    return crimeData[district];
-                }
+                if (geoJsonName.includes(district)) return crimeData[district];
             }
-            return 0; // Fallback if no match found
+            return 0;
         }
 
-        // 4. Function to assign colors based on crime numbers
         function getColor(d) {
-            return d > 20000 ? '#67000d' : // Extreme: Deep Blood Red
-                   d > 13000 ? '#a50f15' : // Very High: Dark Red
-                   d > 10000 ? '#ef3b2c' : // High: Bright Red
-                   d > 8000  ? '#fb6a4a' : // Medium-High: Orange-Red
-                   d > 5000  ? '#fc9272' : // Medium: Salmon
-                   d > 3000  ? '#fcbba1' : // Low: Peach
-                               '#fee5d9';  // Very Low: Pale Yellow/Pink
+            return d > 20000 ? '#67000d' : 
+                   d > 13000 ? '#a50f15' : 
+                   d > 10000 ? '#ef3b2c' : 
+                   d > 8000  ? '#fb6a4a' : 
+                   d > 5000  ? '#fc9272' : 
+                   d > 3000  ? '#fcbba1' : 
+                               '#fee5d9';  
         }
 
-        // 5. Function to style each district polygon
         function styleMap(feature) {
-            const districtName = feature.properties.name;
-            const crimes = getCrimeCount(districtName);
-            return {
-                fillColor: getColor(crimes),
-                weight: 2,
-                opacity: 1,
-                color: 'white',
-                dashArray: '3',
-                fillOpacity: 0.7
-            };
+            const crimes = getCrimeCount(feature.properties.name);
+            return { fillColor: getColor(crimes), weight: 2, opacity: 1, color: 'white', dashArray: '3', fillOpacity: 0.7 };
         }
 
-        // 6. Function to add interactive popups to each district
         function onEachFeature(feature, layer) {
-            const rawDistrictName = feature.properties.name;
-            const crimes = getCrimeCount(rawDistrictName);
+            // Bind popup as a dynamic function instead of a static string
+            layer.bindPopup(function(layer) {
+                const rawDistrictName = feature.properties.name;
+                const crimes = getCrimeCount(rawDistrictName);
+                
+                const formattedName = rawDistrictName.replace('Wien ', '').replace(',', ', ');
+                const formattedCrimes = crimes.toLocaleString();
+                
+                // Uses the current language dictionary for the popup label
+                return `<b>${formattedName}</b><br>${translations[currentLang].popup}: ${formattedCrimes}`;
+            });
             
-            // Format the name: Remove "Wien " and add a space after the comma
-            const formattedName = rawDistrictName.replace('Wien ', '').replace(',', ', ');
-            
-            // Format the number to have a thousands separator (e.g., 26,218)
-            const formattedCrimes = crimes.toLocaleString();
-            
-            layer.bindPopup(`<b>${formattedName}</b><br>Reported Crimes: ${formattedCrimes}`);
-            
-            // Optional: Highlight on hover
             layer.on({
                 mouseover: function(e) {
                     var layer = e.target;
                     layer.setStyle({ weight: 5, color: '#666', dashArray: '', fillOpacity: 0.7 });
                     layer.bringToFront();
                 },
-                mouseout: function(e) {
-                    geojsonLayer.resetStyle(e.target);
-                }
+                mouseout: function(e) { geojsonLayer.resetStyle(e.target); }
             });
         }
 
-        // 7. Fetch the GeoJSON and add it to the map
         let geojsonLayer;
         fetch('vienna_bezirke.geojson')
             .then(response => response.json())
             .then(data => {
                 geojsonLayer = L.geoJson(data, {
-                    filter: function(feature) {
-                        return feature.properties.name !== "Wien(Stadt)";
-                    },
+                    filter: function(feature) { return feature.properties.name !== "Wien(Stadt)"; },
                     style: styleMap,
                     onEachFeature: onEachFeature
                 }).addTo(map);
             })
             .catch(error => console.error('Error loading GeoJSON:', error));
 
-        // 8. Add a Legend to the bottom right
         const legend = L.control({position: 'bottomright'});
         legend.onAdd = function (map) {
             const div = L.DomUtil.create('div', 'info legend');
             const grades = [0, 3000, 5000, 8000, 10000, 13000, 20000];
             
-            div.innerHTML += '<strong style="display:block; margin-bottom:8px;">Reported Crimes</strong>';
+            div.innerHTML += `<strong id="legend-title" style="display:block; margin-bottom:8px;">${translations[currentLang].legend}</strong>`;
             
             for (let i = 0; i < grades.length; i++) {
-                // Format the numbers with commas for readability
                 let from = grades[i].toLocaleString();
                 let to = grades[i + 1] ? grades[i + 1].toLocaleString() : '+';
                 
-                // Use CSS Flexbox for perfect vertical and horizontal alignment
                 div.innerHTML +=
                     '<div style="display: flex; align-items: center; margin-bottom: 4px;">' +
                         '<i style="background:' + getColor(grades[i] + 1) + '; min-width: 18px; height: 18px; margin-right: 8px; border: 1px solid #999;"></i> ' +
