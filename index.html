@@ -314,6 +314,26 @@
         .source-bar a { color: var(--accent2); text-decoration: none; }
         .source-bar a:hover { text-decoration: underline; }
 
+        /* ── Maps Style Top Blur ── */
+        .map-top-blur {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 90px;  /* How far down the blur extends */
+            z-index: 800;  /* Places it over the map tiles, but under your controls (900) */
+            pointer-events: none; /* Ensures you can still click and drag the map underneath */
+            
+            /* The frosted glass blur */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            
+            /* Makes the blur smoothly fade out to transparent at the bottom */
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+            
+            /* A subtle dark tint */
+            background: linear-gradient(to bottom, rgba(21, 24, 32, 0.6) 0%, rgba(21, 24, 32, 0) 100%);
+        }
+
         /* ── Leaflet overrides ── */
         .leaflet-container { background: #e8e8e8 !important; }
         .leaflet-popup-content-wrapper {
@@ -458,6 +478,8 @@
 
     <div class="map-area">
         <div id="map"></div>
+        
+        <div class="map-top-blur"></div>
         
         <div class="map-controls-container">
             <div class="map-corner-label" id="map-corner">Hover a district</div>
