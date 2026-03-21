@@ -318,21 +318,18 @@
         .map-top-blur {
             position: absolute;
             top: 0; left: 0; right: 0;
-            height: 90px;  /* How far down the blur extends */
-            z-index: 800;  /* Places it over the map tiles, but under your controls (900) */
-            pointer-events: none; /* Ensures you can still click and drag the map underneath */
-            
-            /* The frosted glass blur */
+            height: 90px;
+            z-index: 800;
+            pointer-events: none;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            
-            /* Makes the blur smoothly fade out to transparent at the bottom */
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
             mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
-            
-            /* A subtle dark tint */
             background: linear-gradient(to bottom, rgba(21, 24, 32, 0.6) 0%, rgba(21, 24, 32, 0) 100%);
         }
+
+        /* ── Mobile Map Protector ── */
+        .map-protector { display: none; }
 
         /* ── Leaflet overrides ── */
         .leaflet-container { background: #e8e8e8 !important; }
@@ -424,6 +421,35 @@
             .map-controls-container { top: 10px; right: 10px; gap: 6px; }
             .map-corner-label { font-size: 9px; padding: 6px 10px; }
             .toggle-btn { font-size: 9px; padding: 5px 8px; }
+
+            /* Mobile Protector Styles */
+            .map-protector {
+                display: flex;
+                position: absolute;
+                inset: 0;
+                z-index: 850; /* Above blur, below controls */
+                background: rgba(13, 15, 20, 0.3);
+                align-items: center;
+                justify-content: center;
+                color: var(--text);
+                font-family: var(--mono);
+                font-size: 12px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                cursor: pointer;
+                transition: opacity 0.3s;
+            }
+            .map-protector span {
+                background: rgba(21, 24, 32, 0.95);
+                padding: 10px 16px;
+                border-radius: 20px;
+                border: 1px solid var(--border);
+                box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            }
+            .map-protector.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
         }
     </style>
 </head>
@@ -480,6 +506,10 @@
         <div id="map"></div>
         
         <div class="map-top-blur"></div>
+
+        <div class="map-protector" id="map-protector">
+            <span id="protector-text">Tap to interact</span>
+        </div>
         
         <div class="map-controls-container">
             <div class="map-corner-label" id="map-corner">Hover a district</div>
@@ -515,6 +545,7 @@ const translations = {
         mapCorner: "Choose a district",
         toggleAbs: "Absolute",
         toggleRel: "Per 1k Citizens",
+        protector: "Tap to interact", // Translation for the new protector
         source: 'Source: <a href="https://www.bundeskriminalamt.at/501/files/PKS-24-web3_bf_20250919.pdf" target="_blank">Bundeskriminalamt · PKS 2024</a>'
     },
     de: {
@@ -536,6 +567,7 @@ const translations = {
         mapCorner: "Bezirk auswählen",
         toggleAbs: "Absolut",
         toggleRel: "Pro 1.000 Einw.",
+        protector: "Tippe zum Interagieren",
         source: 'Quelle: <a href="https://www.bundeskriminalamt.at/501/files/PKS-24-web3_bf_20250919.pdf" target="_blank">Bundeskriminalamt · PKS 2024</a>'
     },
     zh: {
@@ -557,6 +589,7 @@ const translations = {
         mapCorner: "悬停鼠标，查看数据",
         toggleAbs: "绝对值",
         toggleRel: "相对值（每千人）",
+        protector: "点击查看数据",
         source: '数据来源: <a href="https://www.bundeskriminalamt.at/501/files/PKS-24-web3_bf_20250919.pdf" target="_blank">奥地利联邦刑事警察局 · PKS 2024</a>'
     }
 };
@@ -572,7 +605,6 @@ const crimeData = {
     "Währing": 3154, "Josefstadt": 3058
 };
 
-// Population data from Wikipedia (latest stats) embedded locally to save network calls
 const populationData = {
     "Innere Stadt": 16281, "Leopoldstadt": 112675, "Landstraße": 98881,
     "Wieden": 33444, "Margareten": 54581, "Mariahilf": 31083,
@@ -584,24 +616,20 @@ const populationData = {
     "Donaustadt": 228158, "Liesing": 123714
 };
 
-let currentMode = 'absolute'; // 'absolute' or 'relative'
+let currentMode = 'absolute'; 
 let currentLang = 'en';
 
-// Calculate maximums for progress bars
 const maxCrimeAbs = Math.max(...Object.values(crimeData));
 const maxCrimeRel = Math.max(...Object.keys(crimeData).map(d => crimeData[d] / (populationData[d] / 1000)));
 
-// Different grading buckets based on view type
 const gradesAbs = [0, 3000, 5000, 8000, 10000, 13000, 20000];
 const gradesRel = [0, 60, 80, 100, 120, 150, 200];
 const colors    = ['#fff5d6','#ffd580','#ffaa40','#ff6a1a','#e63000','#b51800','#7a0000'];
 
-// Helper to get correct value per district depending on mode
 function getVal(name) {
     let dName = Object.keys(crimeData).find(d => name.includes(d));
     if (!dName) return 0;
     if (currentMode === 'absolute') return crimeData[dName];
-    // Return relative: crimes per 1000 citizens
     return crimeData[dName] / (populationData[dName] / 1000);
 }
 
@@ -634,7 +662,6 @@ function buildRanking() {
     const container = document.getElementById('rank-rows');
     container.innerHTML = '';
     
-    // Dynamically calculate and sort districts
     const sorted = Object.keys(crimeData).map(name => ({
         name: name,
         val: getVal(name)
@@ -672,7 +699,6 @@ function updateSidebarStats() {
         document.querySelector('#stat-lowest .stat-value').textContent = "3,058";
         document.querySelector('#stat-lowest .stat-sub').textContent = "Josefstadt";
     } else {
-        // Find highest/lowest dynamically for relative view
         document.getElementById('stat-highest-label').textContent = t.highestLabelRel;
         document.querySelector('#stat-highest .stat-value').textContent = getVal("Innere Stadt").toFixed(1);
         document.querySelector('#stat-highest .stat-sub').textContent = "Innere Stadt";
@@ -699,6 +725,7 @@ function changeLanguage(lang) {
     document.getElementById('btn-rel').textContent = t.toggleRel;
     
     document.getElementById('map-corner').textContent = t.mapCorner;
+    document.getElementById('protector-text').textContent = t.protector; // NEW translation hook
     document.getElementById('source-text').innerHTML = t.source;
     
     updateSidebarStats();
@@ -710,11 +737,9 @@ function changeLanguage(lang) {
 function switchView(mode) {
     currentMode = mode;
     
-    // Toggle Button Styles
     document.getElementById('btn-abs').classList.toggle('active', mode === 'absolute');
     document.getElementById('btn-rel').classList.toggle('active', mode === 'relative');
     
-    // Update Map Colors
     if (geojsonLayer) {
         geojsonLayer.eachLayer(layer => {
             const val = getVal(layer.feature.properties.name);
@@ -733,7 +758,9 @@ function switchView(mode) {
     buildRanking();
 }
 
-const map = L.map('map').setView([48.2082, 16.3738], 11);
+// Map Initialization
+// Added `scrollWheelZoom: false` to stop desktop scrolling from zooming the map automatically
+const map = L.map('map', { scrollWheelZoom: false }).setView([48.2082, 16.3738], 11);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '© OpenStreetMap contributors © CARTO',
@@ -800,7 +827,55 @@ fetch('vienna_bezirke.geojson')
 
 changeLanguage('en');
 
-window.addEventListener('resize', () => map.invalidateSize());
+// ── Mobile Usability: Map Protector Logic ──
+const protector = document.getElementById('map-protector');
+let isMapAwake = false;
+
+// Function to lock map to allow smooth page scrolling
+function sleepMap() {
+    if (window.innerWidth <= 850) {
+        isMapAwake = false;
+        protector.classList.remove('hidden');
+        map.dragging.disable();
+        if (map.touchZoom) map.touchZoom.disable();
+    }
+}
+
+// Function to unlock the map after tap
+function wakeMap() {
+    isMapAwake = true;
+    protector.classList.add('hidden');
+    map.dragging.enable();
+    if (map.touchZoom) map.touchZoom.enable();
+}
+
+protector.addEventListener('click', wakeMap);
+
+// If the user starts scrolling down the webpage, put the map back to sleep
+window.addEventListener('scroll', () => {
+    if (isMapAwake && window.innerWidth <= 850) {
+        sleepMap();
+    }
+}, { passive: true }); // passive:true ensures the scroll isn't laggy
+
+// Initial check on load
+if (window.innerWidth <= 850) {
+    sleepMap();
+}
+
+// Re-check if device orientation changes
+window.addEventListener('resize', () => {
+    map.invalidateSize();
+    if (window.innerWidth > 850) {
+        // We are on Desktop, completely disable protector and enable drag
+        protector.classList.add('hidden');
+        map.dragging.enable();
+        if (map.touchZoom) map.touchZoom.enable();
+    } else if (!isMapAwake) {
+        sleepMap();
+    }
+});
+
 </script>
 </body>
 </html>
